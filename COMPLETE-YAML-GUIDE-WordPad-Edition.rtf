@@ -1,0 +1,1124 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0\fnil\fcharset0 Courier New;}{\f1\fnil\fcharset0 Arial;}{\f2\fnil\fcharset0 Consolas;}}
+{\colortbl;\red0\green0\blue0;\red0\green0\blue255;\red0\green128\blue0;\red255\green0\blue0;}
+
+\f1\fs24
+
+{\b\fs36 Complete YAML Guide for Kubernetes - WordPad Edition}\par
+\par
+{\b\fs28 Table of Contents}\par
+\line
+1. YAML Basics & Syntax\par
+2. YAML Structure Fundamentals\par
+3. Kubernetes YAML Structure\par
+4. Step-by-Step YAML Explanations\par
+5. Combining Multiple Resources\par
+6. Best Practices\par
+\par
+\page
+
+{\b\fs32 YAML Basics & Syntax}\par
+\line
+\par
+{\b\fs28 What is YAML?}\par
+\par
+YAML = "YAML Ain't Markup Language"\par
+- Human-readable data serialization format\par
+- Uses indentation (spaces, NOT tabs)\par
+- Case-sensitive\par
+- File extension: .yaml or .yml\par
+\par
+
+{\b\fs28 Basic YAML Rules}\par
+\par
+{\b 1. Indentation}\par
+\f2\fs20
+parent:\par
+  child:\par
+    grandchild: value\par
+\f1\fs24
+\par
+
+{\b 2. Key-Value Pairs}\par
+\f2\fs20
+name: nginx\par
+version: 1.21\par
+port: 80\par
+description: "This is a web server"\par
+replicas: 3\par
+enabled: true\par
+\f1\fs24
+\par
+
+{\b 3. Lists/Arrays}\par
+\f2\fs20
+fruits:\par
+- apple\par
+- banana\par
+- orange\par
+\par
+colors: [red, green, blue]\par
+\f1\fs24
+\par
+
+{\b 4. Objects/Maps}\par
+\f2\fs20
+person:\par
+  name: John Doe\par
+  age: 30\par
+  address:\par
+    street: 123 Main St\par
+    city: New York\par
+\f1\fs24
+\par
+
+{\b 5. Multi-line Strings}\par
+\f2\fs20
+description: |\par
+  This is line 1\par
+  This is line 2\par
+  This is line 3\par
+\par
+summary: >\par
+  This is a very long sentence that\par
+  will be folded into a single line.\par
+\f1\fs24
+\par
+
+{\b 6. Comments}\par
+\f2\fs20
+# This is a comment\par
+name: nginx  # Inline comment\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 Kubernetes YAML Structure}\par
+\line
+\par
+{\b\fs28 Basic Kubernetes Resource Template}\par
+\par
+Every Kubernetes resource follows this structure:\par
+\par
+\f2\fs20
+apiVersion: <api-version>    # Which API version to use\par
+kind: <resource-type>        # What type of resource\par
+metadata:                    # Information about the resource\par
+  name: <resource-name>      # Name of the resource\par
+  namespace: <namespace>     # Which namespace (optional)\par
+  labels:                    # Key-value pairs for organization\par
+    key: value\par
+  annotations:               # Non-identifying metadata\par
+    key: value\par
+spec:                        # Desired state specification\par
+  # Resource-specific configuration\par
+\f1\fs24
+\par
+
+{\b\fs28 Common API Versions}\par
+\par
+{\b Core resources (apiVersion: v1):}\par
+- Pod, Service, ConfigMap, Secret, Namespace\par
+- PersistentVolume, PersistentVolumeClaim\par
+\par
+{\b Apps resources (apiVersion: apps/v1):}\par
+- Deployment, StatefulSet, DaemonSet, ReplicaSet\par
+\par
+{\b Batch resources (apiVersion: batch/v1):}\par
+- Job, CronJob\par
+\par
+{\b Networking (apiVersion: networking.k8s.io/v1):}\par
+- Ingress, NetworkPolicy, IngressClass\par
+\par
+{\b RBAC (apiVersion: rbac.authorization.k8s.io/v1):}\par
+- Role, RoleBinding, ClusterRole, ClusterRoleBinding\par
+\par
+{\b Storage (apiVersion: storage.k8s.io/v1):}\par
+- StorageClass\par
+\par
+{\b Autoscaling (apiVersion: autoscaling/v2):}\par
+- HorizontalPodAutoscaler\par
+\par
+\page
+
+{\b\fs32 Step-by-Step YAML Explanations}\par
+\line
+\par
+
+{\b\fs28 1. Pod - Complete Breakdown}\par
+\par
+\f2\fs18
+apiVersion: v1                    # API version for core resources\par
+kind: Pod                         # Resource type: Pod\par
+metadata:                         # Metadata section\par
+  name: nginx-pod                 # Pod name (unique in namespace)\par
+  labels:                         # Labels for organization\par
+    app: nginx                    # Label: app=nginx\par
+    tier: frontend                # Label: tier=frontend\par
+spec:                             # Specification section\par
+  containers:                     # List of containers\par
+  - name: nginx                   # Container name\par
+    image: nginx:1.21             # Docker image to use\par
+    ports:                        # Ports to expose\par
+    - containerPort: 80           # Container listens on port 80\par
+    resources:                    # Resource constraints\par
+      requests:                   # Minimum resources guaranteed\par
+        memory: "64Mi"            # Request 64 megabytes memory\par
+        cpu: "250m"               # Request 250 millicores\par
+      limits:                     # Maximum resources allowed\par
+        memory: "128Mi"           # Limit to 128 megabytes\par
+        cpu: "500m"               # Limit to 500 millicores\par
+    env:                          # Environment variables\par
+    - name: ENVIRONMENT           # Variable name\par
+      value: "production"         # Variable value\par
+    volumeMounts:                 # Mount volumes\par
+    - name: config-volume         # Volume name\par
+      mountPath: /etc/config      # Path inside container\par
+  volumes:                        # Define volumes\par
+  - name: config-volume           # Volume name\par
+    configMap:                    # Volume source: ConfigMap\par
+      name: app-config            # ConfigMap name\par
+  restartPolicy: Always           # Restart policy\par
+\f1\fs24
+\par
+
+{\b Key Points:}\par
+- apiVersion: Tells Kubernetes which API to use\par
+- kind: Type of resource we're creating\par
+- metadata.name: Unique identifier within namespace\par
+- metadata.labels: Used for selecting and organizing resources\par
+- spec.containers: Can have multiple containers in one pod\par
+- resources.requests: Kubernetes schedules based on this\par
+- resources.limits: Container killed if exceeded\par
+\par
+\page
+
+{\b\fs28 2. Deployment - Complete Breakdown}\par
+\par
+\f2\fs18
+apiVersion: apps/v1               # Apps API for workload controllers\par
+kind: Deployment                  # Resource type: Deployment\par
+metadata:\par
+  name: nginx-deployment          # Deployment name\par
+  labels:\par
+    app: nginx                    # Label for deployment\par
+spec:                             # Deployment specification\par
+  replicas: 3                     # Number of pod replicas\par
+  selector:                       # How deployment finds pods\par
+    matchLabels:                  # Pods with these labels\par
+      app: nginx                  # Must match template labels\par
+  template:                       # Pod template\par
+    metadata:\par
+      labels:                     # Labels for pods\par
+        app: nginx                # MUST match selector\par
+    spec:                         # Pod specification\par
+      containers:\par
+      - name: nginx\par
+        image: nginx:1.21\par
+        ports:\par
+        - containerPort: 80\par
+        resources:\par
+          requests:\par
+            memory: "64Mi"\par
+            cpu: "250m"\par
+          limits:\par
+            memory: "128Mi"\par
+            cpu: "500m"\par
+        livenessProbe:            # Checks if alive\par
+          httpGet:\par
+            path: /\par
+            port: 80\par
+          initialDelaySeconds: 30 # Wait 30s before first check\par
+          periodSeconds: 10       # Check every 10 seconds\par
+        readinessProbe:           # Checks if ready\par
+          httpGet:\par
+            path: /\par
+            port: 80\par
+          initialDelaySeconds: 5\par
+          periodSeconds: 5\par
+  strategy:                       # Update strategy\par
+    type: RollingUpdate           # Update gradually\par
+    rollingUpdate:\par
+      maxSurge: 1                 # Max 1 extra pod\par
+      maxUnavailable: 1           # Max 1 pod unavailable\par
+\f1\fs24
+\par
+
+{\b Key Points:}\par
+- replicas: Desired number of pods\par
+- selector.matchLabels: MUST match template.metadata.labels\par
+- template: Pod template used to create new pods\par
+- livenessProbe: Restarts container if fails\par
+- readinessProbe: Removes from service if fails\par
+- strategy: How updates are performed\par
+\par
+\page
+
+{\b\fs28 3. Service (ClusterIP) - Complete Breakdown}\par
+\par
+\f2\fs18
+apiVersion: v1                    # Core API version\par
+kind: Service                     # Resource type: Service\par
+metadata:\par
+  name: nginx-service-clusterip   # Service name (DNS name)\par
+  labels:\par
+    app: nginx\par
+spec:\par
+  type: ClusterIP                 # Internal service\par
+  selector:                       # Selects pods\par
+    app: nginx                    # Routes to pods with app=nginx\par
+  ports:                          # Port mappings\par
+  - name: http                    # Port name\par
+    protocol: TCP                 # Protocol\par
+    port: 80                      # Service port (client connects)\par
+    targetPort: 80                # Pod port (traffic sent here)\par
+  sessionAffinity: ClientIP       # Sticky sessions\par
+  sessionAffinityConfig:\par
+    clientIP:\par
+      timeoutSeconds: 10800       # Session timeout: 3 hours\par
+\f1\fs24
+\par
+
+{\b Key Points:}\par
+- type: ClusterIP: Internal service (default)\par
+- selector: Matches pods by labels\par
+- port: Port exposed by service\par
+- targetPort: Port on the pod\par
+- sessionAffinity: ClientIP = sticky sessions\par
+\par
+{\b How it works:}\par
+1. Service gets stable ClusterIP (e.g., 10.96.0.1)\par
+2. DNS name: nginx-service-clusterip.default.svc.cluster.local\par
+3. Traffic to service IP:80 goes to pods with app=nginx on port 80\par
+4. Load balanced across all matching pods\par
+\par
+\page
+
+{\b\fs28 4. ConfigMap - Complete Breakdown}\par
+\par
+\f2\fs18
+apiVersion: v1\par
+kind: ConfigMap\par
+metadata:\par
+  name: app-config\par
+  namespace: default\par
+data:                             # Configuration data\par
+  # Simple key-value pairs\par
+  database_host: "mysql.example.com"\par
+  database_port: "3306"\par
+  log_level: "info"\par
+  \par
+  # File-like keys\par
+  app.properties: |\par
+    app.name=MyApplication\par
+    app.version=1.0.0\par
+    app.environment=production\par
+    \par
+  nginx.conf: |\par
+    server \{\par
+      listen 80;\par
+      server_name localhost;\par
+      location / \{\par
+        root /usr/share/nginx/html;\par
+        index index.html;\par
+      \}\par
+    \}\par
+\f1\fs24
+\par
+
+{\b Usage in Pod (Method 1 - Environment Variables):}\par
+\f2\fs18
+envFrom:\par
+- configMapRef:\par
+    name: app-config\par
+\f1\fs24
+\par
+
+{\b Usage in Pod (Method 2 - Specific Key):}\par
+\f2\fs18
+env:\par
+- name: DB_HOST\par
+  valueFrom:\par
+    configMapKeyRef:\par
+      name: app-config\par
+      key: database_host\par
+\f1\fs24
+\par
+
+{\b Usage in Pod (Method 3 - Mount as Files):}\par
+\f2\fs18
+volumes:\par
+- name: config\par
+  configMap:\par
+    name: app-config\par
+volumeMounts:\par
+- name: config\par
+  mountPath: /etc/config\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 5. Secret - Complete Breakdown}\par
+\par
+\f2\fs18
+apiVersion: v1\par
+kind: Secret\par
+metadata:\par
+  name: app-secret\par
+  namespace: default\par
+type: Opaque                      # Generic secret type\par
+data:                             # Base64 encoded values\par
+  username: YWRtaW4=              # "admin" in base64\par
+  password: cGFzc3dvcmQxMjM=      # "password123" in base64\par
+\f1\fs24
+\par
+
+{\b Create Secret from Command Line:}\par
+\f2\fs18
+kubectl create secret generic app-secret \\\par
+  --from-literal=username=admin \\\par
+  --from-literal=password=password123\par
+\f1\fs24
+\par
+
+{\b Encode/Decode Base64:}\par
+\f2\fs18
+# Encode\par
+echo -n "admin" | base64\par
+\par
+# Decode\par
+echo "YWRtaW4=" | base64 --decode\par
+\f1\fs24
+\par
+
+{\b Usage in Pod:}\par
+\f2\fs18
+env:\par
+- name: DB_PASSWORD\par
+  valueFrom:\par
+    secretKeyRef:\par
+      name: app-secret\par
+      key: password\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 6. StatefulSet - Complete Breakdown}\par
+\par
+\f2\fs18
+apiVersion: apps/v1\par
+kind: StatefulSet\par
+metadata:\par
+  name: mysql-statefulset\par
+spec:\par
+  serviceName: "mysql"            # Headless service (required)\par
+  replicas: 3                     # Number of replicas\par
+  selector:\par
+    matchLabels:\par
+      app: mysql\par
+  template:\par
+    metadata:\par
+      labels:\par
+        app: mysql\par
+    spec:\par
+      containers:\par
+      - name: mysql\par
+        image: mysql:8.0\par
+        ports:\par
+        - containerPort: 3306\par
+          name: mysql\par
+        env:\par
+        - name: MYSQL_ROOT_PASSWORD\par
+          valueFrom:\par
+            secretKeyRef:\par
+              name: app-secret\par
+              key: password\par
+        volumeMounts:\par
+        - name: mysql-data\par
+          mountPath: /var/lib/mysql\par
+  volumeClaimTemplates:           # Creates PVC per pod\par
+  - metadata:\par
+      name: mysql-data\par
+    spec:\par
+      accessModes:\par
+      - ReadWriteOnce\par
+      storageClassName: "standard"\par
+      resources:\par
+        requests:\par
+          storage: 10Gi\par
+\f1\fs24
+\par
+
+{\b Key Points:}\par
+- serviceName: Required headless service\par
+- Stable network IDs: mysql-statefulset-0, mysql-statefulset-1, mysql-statefulset-2\par
+- Stable DNS: mysql-statefulset-0.mysql.default.svc.cluster.local\par
+- volumeClaimTemplates: Each pod gets its own PVC\par
+- Ordered operations: Pods created/deleted in order (0, 1, 2)\par
+\par
+\page
+
+{\b\fs28 7. Job - Complete Breakdown}\par
+\par
+\f2\fs18
+apiVersion: batch/v1\par
+kind: Job\par
+metadata:\par
+  name: backup-job\par
+spec:\par
+  completions: 1                  # Successful completions needed\par
+  parallelism: 1                  # Pods running in parallel\par
+  backoffLimit: 3                 # Retries before failed\par
+  activeDeadlineSeconds: 600      # Max time: 10 minutes\par
+  template:\par
+    metadata:\par
+      labels:\par
+        app: backup\par
+    spec:\par
+      containers:\par
+      - name: backup\par
+        image: busybox:1.34\par
+        command:\par
+        - "sh"\par
+        - "-c"\par
+        - "echo Running backup; sleep 30; echo Done"\par
+      restartPolicy: OnFailure    # OnFailure or Never\par
+\f1\fs24
+\par
+
+{\b Key Points:}\par
+- completions: Total successful pods needed\par
+- parallelism: Concurrent pods\par
+- backoffLimit: Max failures before giving up\par
+- activeDeadlineSeconds: Job timeout\par
+- restartPolicy: Must be OnFailure or Never (not Always)\par
+\par
+\page
+
+{\b\fs28 8. CronJob - Complete Breakdown}\par
+\par
+\f2\fs18
+apiVersion: batch/v1\par
+kind: CronJob\par
+metadata:\par
+  name: backup-cronjob\par
+spec:\par
+  schedule: "0 2 * * *"           # Daily at 2 AM\par
+  successfulJobsHistoryLimit: 3   # Keep last 3 successful\par
+  failedJobsHistoryLimit: 1       # Keep last 1 failed\par
+  concurrencyPolicy: Forbid       # Allow, Forbid, or Replace\par
+  jobTemplate:\par
+    spec:\par
+      template:\par
+        spec:\par
+          containers:\par
+          - name: backup\par
+            image: busybox:1.34\par
+            command:\par
+            - "sh"\par
+            - "-c"\par
+            - "echo Scheduled backup at $(date)"\par
+          restartPolicy: OnFailure\par
+\f1\fs24
+\par
+
+{\b Cron Schedule Format:}\par
+\f2\fs18
+     *     *     *     *     *\par
+     |     |     |     |     |\par
+     |     |     |     |     +-- Day of week (0-6)\par
+     |     |     |     +-------- Month (1-12)\par
+     |     |     +-------------- Day of month (1-31)\par
+     |     +-------------------- Hour (0-23)\par
+     +-------------------------- Minute (0-59)\par
+\f1\fs24
+\par
+
+{\b Examples:}\par
+"0 2 * * *"      - Every day at 2:00 AM\par
+"*/5 * * * *"    - Every 5 minutes\par
+"0 */4 * * *"    - Every 4 hours\par
+"0 0 * * 0"      - Every Sunday at midnight\par
+"0 0 1 * *"      - 1st of every month at midnight\par
+\par
+\page
+
+{\b\fs28 9. Ingress - Complete Breakdown}\par
+\par
+\f2\fs18
+apiVersion: networking.k8s.io/v1\par
+kind: Ingress\par
+metadata:\par
+  name: app-ingress\par
+  annotations:\par
+    nginx.ingress.kubernetes.io/rewrite-target: /\par
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"\par
+spec:\par
+  ingressClassName: nginx\par
+  tls:\par
+  - hosts:\par
+    - example.com\par
+    secretName: tls-secret\par
+  rules:\par
+  - host: example.com\par
+    http:\par
+      paths:\par
+      - path: /\par
+        pathType: Prefix\par
+        backend:\par
+          service:\par
+            name: nginx-service\par
+            port:\par
+              number: 80\par
+\f1\fs24
+\par
+
+{\b Key Points:}\par
+- Layer 7 (HTTP/HTTPS) load balancer\par
+- Routes traffic based on host and path\par
+- SSL/TLS termination\par
+- Requires Ingress Controller (nginx, traefik, etc.)\par
+\par
+
+{\b Path Types:}\par
+- Prefix: Matches /path and /path/*\par
+- Exact: Exact match only\par
+- ImplementationSpecific: Depends on controller\par
+\par
+\page
+
+{\b\fs28 10. PersistentVolume & PersistentVolumeClaim}\par
+\par
+{\b PersistentVolume (PV):}\par
+\f2\fs18
+apiVersion: v1\par
+kind: PersistentVolume\par
+metadata:\par
+  name: pv-local\par
+spec:\par
+  storageClassName: manual\par
+  capacity:\par
+    storage: 10Gi\par
+  accessModes:\par
+    - ReadWriteOnce\par
+  persistentVolumeReclaimPolicy: Retain\par
+  hostPath:\par
+    path: "/mnt/data"\par
+\f1\fs24
+\par
+
+{\b Access Modes:}\par
+- ReadWriteOnce (RWO): Single node, read-write\par
+- ReadOnlyMany (ROX): Multiple nodes, read-only\par
+- ReadWriteMany (RWX): Multiple nodes, read-write\par
+\par
+
+{\b PersistentVolumeClaim (PVC):}\par
+\f2\fs18
+apiVersion: v1\par
+kind: PersistentVolumeClaim\par
+metadata:\par
+  name: pvc-local\par
+spec:\par
+  storageClassName: manual\par
+  accessModes:\par
+    - ReadWriteOnce\par
+  resources:\par
+    requests:\par
+      storage: 5Gi\par
+\f1\fs24
+\par
+
+{\b Using PVC in Pod:}\par
+\f2\fs18
+spec:\par
+  containers:\par
+  - name: app\par
+    volumeMounts:\par
+    - name: data\par
+      mountPath: /data\par
+  volumes:\par
+  - name: data\par
+    persistentVolumeClaim:\par
+      claimName: pvc-local\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 11. HorizontalPodAutoscaler (HPA)}\par
+\par
+\f2\fs18
+apiVersion: autoscaling/v2\par
+kind: HorizontalPodAutoscaler\par
+metadata:\par
+  name: nginx-hpa\par
+spec:\par
+  scaleTargetRef:\par
+    apiVersion: apps/v1\par
+    kind: Deployment\par
+    name: nginx-deployment\par
+  minReplicas: 2\par
+  maxReplicas: 10\par
+  metrics:\par
+  - type: Resource\par
+    resource:\par
+      name: cpu\par
+      target:\par
+        type: Utilization\par
+        averageUtilization: 70\par
+  - type: Resource\par
+    resource:\par
+      name: memory\par
+      target:\par
+        type: Utilization\par
+        averageUtilization: 80\par
+\f1\fs24
+\par
+
+{\b Key Points:}\par
+- Auto-scales number of pods\par
+- Based on CPU, memory, or custom metrics\par
+- Requires metrics-server installed\par
+- minReplicas: Minimum replicas\par
+- maxReplicas: Maximum replicas\par
+\par
+\page
+
+{\b\fs28 12. NetworkPolicy}\par
+\par
+\f2\fs18
+apiVersion: networking.k8s.io/v1\par
+kind: NetworkPolicy\par
+metadata:\par
+  name: allow-frontend-to-backend\par
+spec:\par
+  podSelector:\par
+    matchLabels:\par
+      app: backend\par
+  policyTypes:\par
+  - Ingress\par
+  ingress:\par
+  - from:\par
+    - podSelector:\par
+        matchLabels:\par
+          app: frontend\par
+    ports:\par
+    - protocol: TCP\par
+      port: 8080\par
+\f1\fs24
+\par
+
+{\b Key Points:}\par
+- Firewall rules for pods\par
+- Controls ingress (incoming) and egress (outgoing) traffic\par
+- Pod-level network segmentation\par
+- Requires CNI plugin support (Calico, Cilium)\par
+\par
+
+{\b Common Pattern - Deny All:}\par
+\f2\fs18
+apiVersion: networking.k8s.io/v1\par
+kind: NetworkPolicy\par
+metadata:\par
+  name: deny-all\par
+spec:\par
+  podSelector: \{\}\par
+  policyTypes:\par
+  - Ingress\par
+  - Egress\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 Combining Multiple Resources}\par
+\line
+\par
+
+{\b\fs28 Multiple Documents in One File}\par
+\par
+Use three dashes (---) to separate resources:\par
+\par
+\f2\fs18
+# Namespace\par
+apiVersion: v1\par
+kind: Namespace\par
+metadata:\par
+  name: myapp\par
+\par
+---\par
+\par
+# ConfigMap\par
+apiVersion: v1\par
+kind: ConfigMap\par
+metadata:\par
+  name: app-config\par
+  namespace: myapp\par
+data:\par
+  database_url: "mysql.myapp.svc.cluster.local"\par
+\par
+---\par
+\par
+# Deployment\par
+apiVersion: apps/v1\par
+kind: Deployment\par
+metadata:\par
+  name: web-app\par
+  namespace: myapp\par
+spec:\par
+  replicas: 3\par
+  selector:\par
+    matchLabels:\par
+      app: web\par
+  template:\par
+    metadata:\par
+      labels:\par
+        app: web\par
+    spec:\par
+      containers:\par
+      - name: web\par
+        image: myapp:1.0\par
+        ports:\par
+        - containerPort: 8080\par
+\par
+---\par
+\par
+# Service\par
+apiVersion: v1\par
+kind: Service\par
+metadata:\par
+  name: web-service\par
+  namespace: myapp\par
+spec:\par
+  selector:\par
+    app: web\par
+  ports:\par
+  - port: 80\par
+    targetPort: 8080\par
+\f1\fs24
+\par
+
+{\b Apply All Resources:}\par
+\f2\fs18
+kubectl apply -f full-stack-app.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 Best Practices}\par
+\line
+\par
+
+{\b\fs28 1. YAML Writing Best Practices}\par
+\par
+{\b DO:}\par
+- Use consistent 2-space indentation\par
+- Use quotes for strings with special characters\par
+- Use meaningful names\par
+- Add comments for clarity\par
+- Always set resource requests and limits\par
+\par
+{\b DON'T:}\par
+- Don't use tabs\par
+- Don't mix indentation\par
+- Don't use cryptic names\par
+- Don't skip quotes when needed\par
+\par
+
+{\b\fs28 2. Resource Management}\par
+\par
+Always set resource requests and limits:\par
+\f2\fs18
+resources:\par
+  requests:\par
+    memory: "256Mi"\par
+    cpu: "250m"\par
+  limits:\par
+    memory: "512Mi"\par
+    cpu: "500m"\par
+\f1\fs24
+\par
+
+{\b\fs28 3. Health Checks}\par
+\par
+Always configure probes:\par
+\f2\fs18
+livenessProbe:\par
+  httpGet:\par
+    path: /healthz\par
+    port: 8080\par
+  initialDelaySeconds: 30\par
+  periodSeconds: 10\par
+\par
+readinessProbe:\par
+  httpGet:\par
+    path: /ready\par
+    port: 8080\par
+  initialDelaySeconds: 5\par
+  periodSeconds: 5\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 4. Security Best Practices}\par
+\par
+\f2\fs18
+spec:\par
+  securityContext:\par
+    runAsNonRoot: true\par
+    runAsUser: 1000\par
+    fsGroup: 2000\par
+  containers:\par
+  - name: app\par
+    securityContext:\par
+      allowPrivilegeEscalation: false\par
+      readOnlyRootFilesystem: true\par
+      capabilities:\par
+        drop:\par
+        - ALL\par
+\f1\fs24
+\par
+
+{\b\fs28 5. Labels and Annotations}\par
+\par
+Standard labels:\par
+\f2\fs18
+metadata:\par
+  labels:\par
+    app.kubernetes.io/name: myapp\par
+    app.kubernetes.io/instance: myapp-prod\par
+    app.kubernetes.io/version: "1.2.3"\par
+    app.kubernetes.io/component: frontend\par
+    app.kubernetes.io/part-of: myapp-stack\par
+    environment: production\par
+    team: frontend-team\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 Essential kubectl Commands}\par
+\line
+\par
+
+{\b Apply Resources:}\par
+\f2\fs18
+kubectl apply -f file.yaml\par
+kubectl apply -f directory/\par
+kubectl apply -k kustomize-dir/\par
+\f1\fs24
+\par
+
+{\b Get Resources:}\par
+\f2\fs18
+kubectl get pods\par
+kubectl get all\par
+kubectl get pod -o yaml\par
+kubectl get pods -n namespace\par
+\f1\fs24
+\par
+
+{\b Describe Resources:}\par
+\f2\fs18
+kubectl describe pod pod-name\par
+kubectl describe deployment deployment-name\par
+\f1\fs24
+\par
+
+{\b View Logs:}\par
+\f2\fs18
+kubectl logs pod-name\par
+kubectl logs -f pod-name  # Follow logs\par
+kubectl logs pod-name -c container-name\par
+\f1\fs24
+\par
+
+{\b Execute Commands:}\par
+\f2\fs18
+kubectl exec -it pod-name -- /bin/bash\par
+kubectl exec pod-name -- ls /app\par
+\f1\fs24
+\par
+
+{\b Delete Resources:}\par
+\f2\fs18
+kubectl delete -f file.yaml\par
+kubectl delete pod pod-name\par
+kubectl delete deployment deployment-name\par
+\f1\fs24
+\par
+
+{\b Validation:}\par
+\f2\fs18
+kubectl apply -f file.yaml --dry-run=client\par
+kubectl apply -f file.yaml --dry-run=server\par
+kubectl diff -f file.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 Common Use Cases}\par
+\line
+\par
+
+{\b\fs28 1. Simple Web Application}\par
+\par
+Deployment + Service + Ingress stack for a basic web app\par
+\par
+
+{\b\fs28 2. Microservices Architecture}\par
+\par
+Multiple services (frontend, backend, database) working together\par
+\par
+
+{\b\fs28 3. Stateful Application}\par
+\par
+Database with persistent storage using StatefulSet\par
+\par
+
+{\b\fs28 4. Batch Processing}\par
+\par
+Jobs and CronJobs for scheduled tasks\par
+\par
+
+{\b\fs28 5. Auto-scaling Application}\par
+\par
+Deployment with HorizontalPodAutoscaler for dynamic scaling\par
+\par
+\page
+
+{\b\fs32 Troubleshooting Common Issues}\par
+\line
+\par
+
+{\b\fs28 YAML Syntax Errors}\par
+\par
+{\b Indentation Error:}\par
+Wrong: containers: without proper indentation\par
+Correct: Use consistent 2-space indentation\par
+\par
+
+{\b Missing Dash for Lists:}\par
+Wrong: containers: name: nginx\par
+Correct: containers: - name: nginx\par
+\par
+
+{\b Wrong Data Type:}\par
+Wrong: replicas: "3" (string)\par
+Correct: replicas: 3 (number)\par
+\par
+
+{\b\fs28 Pod Issues}\par
+\par
+{\b Pod Not Starting:}\par
+- Check: kubectl describe pod pod-name\par
+- Check: kubectl logs pod-name\par
+- Check: kubectl get events\par
+\par
+Common causes:\par
+- Image pull errors\par
+- Resource constraints\par
+- Volume mount issues\par
+- Security context issues\par
+\par
+
+{\b\fs28 Service Issues}\par
+\par
+{\b Service Not Accessible:}\par
+- Check: kubectl get endpoints service-name\par
+- Check: kubectl describe service service-name\par
+\par
+Common causes:\par
+- No pods matching selector\par
+- Pods not ready\par
+- Network policy blocking traffic\par
+- Wrong port configuration\par
+\par
+\page
+
+{\b\fs32 Quick Reference}\par
+\line
+\par
+
+{\b Resource Types:}\par
+\par
+Workloads: Pod, Deployment, StatefulSet, DaemonSet, Job, CronJob\par
+Services: Service (ClusterIP, NodePort, LoadBalancer)\par
+Config: ConfigMap, Secret, Namespace\par
+Storage: PersistentVolume, PersistentVolumeClaim, StorageClass\par
+Networking: Ingress, NetworkPolicy\par
+Security: ServiceAccount, Role, RoleBinding, ClusterRole, ClusterRoleBinding\par
+Autoscaling: HorizontalPodAutoscaler\par
+\par
+
+{\b Basic YAML Template:}\par
+\f2\fs18
+apiVersion: <group>/<version>\par
+kind: <Kind>\par
+metadata:\par
+  name: <name>\par
+  namespace: <namespace>\par
+  labels:\par
+    <key>: <value>\par
+spec:\par
+  # Resource-specific configuration\par
+\f1\fs24
+\par
+
+{\b Remember:}\par
+- Always validate YAML before applying\par
+- Use version control for all manifests\par
+- Start simple and add complexity gradually\par
+- Use labels consistently for organization\par
+- Document your configurations\par
+- Test in non-production first\par
+- Set resource requests and limits\par
+- Configure health checks\par
+- Implement security best practices\par
+\par
+\page
+
+{\b\fs32 Additional Resources}\par
+\line
+\par
+
+{\b Official Documentation:}\par
+- Kubernetes Documentation: https://kubernetes.io/docs/\par
+- Kubernetes API Reference: https://kubernetes.io/docs/reference/\par
+- kubectl Cheat Sheet: https://kubernetes.io/docs/reference/kubectl/cheatsheet/\par
+\par
+
+{\b Learning Resources:}\par
+- Kubernetes Patterns: https://k8spatterns.io/\par
+- Interactive Tutorials: https://kubernetes.io/docs/tutorials/\par
+- Kubernetes Academy: https://kubernetes.academy/\par
+\par
+
+{\b Tools:}\par
+- kubectl: Command-line tool\par
+- k9s: Terminal UI for Kubernetes\par
+- Lens: Desktop UI for Kubernetes\par
+- Helm: Package manager for Kubernetes\par
+- Kustomize: Configuration management\par
+\par
+
+{\b Community:}\par
+- Kubernetes Slack: https://slack.k8s.io/\par
+- Stack Overflow: Tag [kubernetes]\par
+- GitHub: https://github.com/kubernetes/kubernetes\par
+\par
+\page
+
+{\b\fs36 End of Document}\par
+\par
+{\b Complete YAML Guide for Kubernetes}\par
+WordPad Edition\par
+\par
+This document provides comprehensive coverage of Kubernetes YAML files,\par
+from basic syntax to advanced resource configurations.\par
+\par
+For the latest updates and additional resources, refer to:\par
+- COMPLETE-YAML-GUIDE.md\par
+- KUBERNETES-MANIFESTS-GUIDE.md\par
+\par
+Happy Kubernetes Learning!\par
+\par
+}

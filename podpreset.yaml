@@ -1,0 +1,20 @@
+apiVersion: settings.k8s.io/v1alpha1
+kind: PodPreset
+metadata:
+  name: allow-database
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      role: frontend
+  env:
+  - name: DB_HOST
+    value: "mysql.example.com"
+  - name: DB_PORT
+    value: "3306"
+  volumeMounts:
+  - mountPath: /cache
+    name: cache-volume
+  volumes:
+  - name: cache-volume
+    emptyDir: {}

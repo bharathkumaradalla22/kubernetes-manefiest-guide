@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: external-database
+  namespace: default
+subsets:
+- addresses:
+  - ip: 192.168.1.100
+  - ip: 192.168.1.101
+  ports:
+  - name: mysql
+    port: 3306
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-database
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+  - name: mysql
+    port: 3306
+    targetPort: 3306
+    protocol: TCP

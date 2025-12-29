@@ -1,0 +1,1320 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0\fnil\fcharset0 Courier New;}{\f1\fnil\fcharset0 Arial;}{\f2\fnil\fcharset0 Consolas;}}
+{\colortbl;\red0\green0\blue0;\red0\green0\blue255;\red0\green128\blue0;\red255\green0\blue0;}
+
+\f1\fs24
+
+{\b\fs36 Kubernetes Manifests Complete Guide - WordPad Edition}\par
+\par
+{\b\fs28 Table of Contents}\par
+\line
+1. Basic Workload Resources\par
+2. Service Resources\par
+3. Configuration Resources\par
+4. Storage Resources\par
+5. Security & Access Control\par
+6. Networking Resources\par
+7. Scheduling & Resource Management\par
+8. Advanced Resources\par
+9. Best Practices Summary\par
+10. Troubleshooting Guide\par
+\par
+\page
+
+{\b\fs32 BASIC WORKLOAD RESOURCES}\par
+\line
+\par
+
+{\b\fs28 1. Pod (pod.yaml)}\par
+\par
+{\b Definition:}\par
+A Pod is the smallest deployable unit in Kubernetes. It represents a single instance of a running process in your cluster and can contain one or more containers.\par
+\par
+{\b What it is:}\par
+- A wrapper around one or more containers\par
+- Shares network namespace (all containers share the same IP)\par
+- Shares storage volumes\par
+- Has a unique IP address within the cluster\par
+\par
+{\b Why we need it:}\par
+- Fundamental building block of Kubernetes applications\par
+- Enables containers to work together as a cohesive unit\par
+- Provides resource limits and requests\par
+- Manages container lifecycle\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f pod.yaml\par
+kubectl get pods\par
+kubectl describe pod nginx-pod\par
+kubectl logs nginx-pod\par
+kubectl delete -f pod.yaml\par
+\f1\fs24
+\par
+{\b When to use:}\par
+- Testing and development\par
+- Running one-off tasks\par
+- Usually managed by higher-level controllers (Deployments, StatefulSets)\par
+\par
+\page
+
+{\b\fs28 2. Deployment (deployment.yaml)}\par
+\par
+{\b Definition:}\par
+A Deployment provides declarative updates for Pods and ReplicaSets. It manages the desired state of your application.\par
+\par
+{\b What it is:}\par
+- Higher-level controller that manages ReplicaSets\par
+- Ensures specified number of pod replicas are running\par
+- Provides rolling updates and rollbacks\par
+- Self-healing mechanism\par
+\par
+{\b Why we need it:}\par
+- Zero-downtime deployments: Rolling updates without service interruption\par
+- Scaling: Easy horizontal scaling (increase/decrease replicas)\par
+- Self-healing: Automatically replaces failed pods\par
+- Version control: Easy rollback to previous versions\par
+- Declarative management: Describe desired state, Kubernetes maintains it\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+# Create deployment\par
+kubectl apply -f deployment.yaml\par
+\par
+# Check deployment status\par
+kubectl get deployments\par
+kubectl rollout status deployment/nginx-deployment\par
+\par
+# Scale deployment\par
+kubectl scale deployment/nginx-deployment --replicas=5\par
+\par
+# Update image\par
+kubectl set image deployment/nginx-deployment nginx=nginx:1.22\par
+\par
+# Rollback to previous version\par
+kubectl rollout undo deployment/nginx-deployment\par
+\par
+# View rollout history\par
+kubectl rollout history deployment/nginx-deployment\par
+\par
+# Delete deployment\par
+kubectl delete -f deployment.yaml\par
+\f1\fs24
+\par
+{\b Best practices:}\par
+- Always use Deployments instead of bare Pods in production\par
+- Set resource requests and limits\par
+- Configure liveness and readiness probes\par
+- Use rolling update strategy for zero-downtime deployments\par
+\par
+\page
+
+{\b\fs28 3. StatefulSet (statefulset.yaml)}\par
+\par
+{\b Definition:}\par
+StatefulSet is used for stateful applications that require stable network identities and persistent storage.\par
+\par
+{\b What it is:}\par
+- Manages deployment of stateful applications\par
+- Provides stable, unique network identifiers\par
+- Provides stable, persistent storage\par
+- Ordered, graceful deployment and scaling\par
+- Ordered, automated rolling updates\par
+\par
+{\b Why we need it:}\par
+- Stable network identity: Each pod gets a predictable name (mysql-0, mysql-1, mysql-2)\par
+- Persistent storage: Each pod gets its own PersistentVolumeClaim\par
+- Ordered operations: Pods are created, updated, and deleted in order\par
+- Stateful applications: Databases, caching systems, message queues\par
+\par
+{\b Use cases:}\par
+- Databases (MySQL, PostgreSQL, MongoDB)\par
+- Distributed systems (Kafka, Elasticsearch, Cassandra)\par
+- Applications requiring stable storage and identity\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f statefulset.yaml\par
+kubectl get statefulsets\par
+kubectl get pods -l app=mysql\par
+kubectl describe statefulset mysql-statefulset\par
+\par
+# Scale statefulset\par
+kubectl scale statefulset mysql-statefulset --replicas=5\par
+\par
+# Delete (pods deleted in reverse order)\par
+kubectl delete -f statefulset.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 4. DaemonSet (daemonset.yaml)}\par
+\par
+{\b Definition:}\par
+A DaemonSet ensures that all (or some) nodes run a copy of a Pod. As nodes are added to the cluster, Pods are added to them.\par
+\par
+{\b What it is:}\par
+- Runs one pod per node\par
+- Automatically adds pods to new nodes\par
+- Removes pods when nodes are removed\par
+\par
+{\b Why we need it:}\par
+- Node-level services: Services that need to run on every node\par
+- Log collection: Running log collectors on all nodes\par
+- Monitoring agents: Node monitoring on every node\par
+- Storage daemons: Local storage management\par
+- Network plugins: Network configuration on all nodes\par
+\par
+{\b Use cases:}\par
+- Log aggregators (Fluentd, Logstash)\par
+- Monitoring agents (Prometheus Node Exporter, Datadog agent)\par
+- Storage daemons (GlusterFS, Ceph)\par
+- Network proxies (kube-proxy)\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f daemonset.yaml\par
+kubectl get daemonsets\par
+kubectl describe daemonset fluentd-daemonset\par
+kubectl get pods -l app=fluentd -o wide\par
+kubectl delete -f daemonset.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 5. Job (job.yaml)}\par
+\par
+{\b Definition:}\par
+A Job creates one or more Pods and ensures that a specified number of them successfully terminate.\par
+\par
+{\b What it is:}\par
+- Runs pods to completion\par
+- Tracks successful completions\par
+- Can run pods in parallel\par
+- Automatically cleans up completed pods\par
+\par
+{\b Why we need it:}\par
+- Batch processing: One-time tasks that must complete\par
+- Data processing: ETL jobs, backups, reports\par
+- Reliability: Retries on failure\par
+- Parallelism: Run multiple pods simultaneously\par
+\par
+{\b Use cases:}\par
+- Database backups\par
+- Data migrations\par
+- Batch processing jobs\par
+- Report generation\par
+- Image processing\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f job.yaml\par
+kubectl get jobs\par
+kubectl describe job backup-job\par
+kubectl logs job/backup-job\par
+kubectl get pods --selector=job-name=backup-job\par
+kubectl delete -f job.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 6. CronJob (cronjob.yaml)}\par
+\par
+{\b Definition:}\par
+A CronJob creates Jobs on a repeating schedule, similar to Unix cron.\par
+\par
+{\b What it is:}\par
+- Scheduled job execution\par
+- Uses cron syntax for scheduling\par
+- Creates Jobs at specified times\par
+- Manages job history\par
+\par
+{\b Why we need it:}\par
+- Scheduled tasks: Periodic backups, reports, cleanups\par
+- Automation: Regular maintenance tasks\par
+- Time-based triggers: Run jobs at specific times\par
+\par
+{\b Use cases:}\par
+- Daily database backups\par
+- Hourly data synchronization\par
+- Weekly report generation\par
+- Monthly cleanup tasks\par
+- Certificate renewal\par
+\par
+{\b Cron schedule format:}\par
+\f2\fs20
+# minute (0-59) hour (0-23) day (1-31) month (1-12) weekday (0-6)\par
+#    *          *         *         *          *\par
+\par
+Examples:\par
+0 2 * * *     - Daily at 2 AM\par
+*/5 * * * *   - Every 5 minutes\par
+0 */4 * * *   - Every 4 hours\par
+0 0 * * 0     - Weekly on Sunday midnight\par
+0 0 1 * *     - Monthly on 1st at midnight\par
+\f1\fs24
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f cronjob.yaml\par
+kubectl get cronjobs\par
+kubectl describe cronjob backup-cronjob\par
+kubectl get jobs --watch\par
+kubectl delete -f cronjob.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 SERVICE RESOURCES}\par
+\line
+\par
+
+{\b\fs28 7. Service - ClusterIP (service-clusterip.yaml)}\par
+\par
+{\b Definition:}\par
+ClusterIP service exposes the application on an internal IP in the cluster. This is the default service type.\par
+\par
+{\b What it is:}\par
+- Internal load balancer\par
+- Only accessible within the cluster\par
+- Provides stable IP and DNS name\par
+- Load balances traffic across pods\par
+\par
+{\b Why we need it:}\par
+- Internal communication: Services communicate with each other\par
+- Stable endpoint: Pods come and go, service IP remains constant\par
+- Load balancing: Distributes traffic to healthy pods\par
+- Service discovery: DNS-based discovery (service-name.namespace.svc.cluster.local)\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f service-clusterip.yaml\par
+kubectl get services\par
+kubectl describe service nginx-service-clusterip\par
+\par
+# Test from within cluster\par
+kubectl run test-pod --image=busybox -it --rm -- \\\par
+  wget -O- http://nginx-service-clusterip\par
+\par
+kubectl delete -f service-clusterip.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 8. Service - NodePort (service-nodeport.yaml)}\par
+\par
+{\b Definition:}\par
+NodePort service exposes the application on each Node's IP at a static port (30000-32767).\par
+\par
+{\b What it is:}\par
+- Exposes service on each node's IP\par
+- Allocates a port from range 30000-32767\par
+- External traffic can reach service via NodeIP:NodePort\par
+- Also creates ClusterIP automatically\par
+\par
+{\b Why we need it:}\par
+- External access: Access services from outside cluster\par
+- Development/Testing: Quick external access without load balancer\par
+- Simple external exposure: No cloud provider required\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f service-nodeport.yaml\par
+kubectl get services\par
+kubectl describe service nginx-service-nodeport\par
+\par
+# Access from outside cluster\par
+curl http://<node-ip>:30080\par
+\par
+kubectl delete -f service-nodeport.yaml\par
+\f1\fs24
+\par
+{\b Note:} For production, prefer LoadBalancer or Ingress.\par
+\par
+\page
+
+{\b\fs28 9. Service - LoadBalancer (service-loadbalancer.yaml)}\par
+\par
+{\b Definition:}\par
+LoadBalancer service exposes the application externally using a cloud provider's load balancer.\par
+\par
+{\b What it is:}\par
+- Creates external load balancer (AWS ELB, GCP, Azure)\par
+- Automatically creates NodePort and ClusterIP\par
+- Provides external IP address\par
+- Cloud provider dependent\par
+\par
+{\b Why we need it:}\par
+- Production external access: Proper load balancing for external traffic\par
+- High availability: Cloud load balancers provide HA\par
+- SSL termination: Some support SSL/TLS termination\par
+- Health checks: Built-in health checking\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f service-loadbalancer.yaml\par
+kubectl get services\par
+\par
+# Wait for EXTERNAL-IP to be assigned\par
+kubectl get service nginx-service-loadbalancer --watch\par
+\par
+# Access via external IP\par
+curl http://<external-ip>\par
+\par
+kubectl delete -f service-loadbalancer.yaml\par
+\f1\fs24
+\par
+{\b Note:} Requires cloud provider support. Each LoadBalancer service gets its own IP (can be costly).\par
+\par
+\page
+
+{\b\fs32 CONFIGURATION RESOURCES}\par
+\line
+\par
+
+{\b\fs28 10. ConfigMap (configmap.yaml)}\par
+\par
+{\b Definition:}\par
+ConfigMap is an API object used to store non-confidential configuration data in key-value pairs.\par
+\par
+{\b What it is:}\par
+- Stores configuration data\par
+- Decouples configuration from container images\par
+- Can store files or key-value pairs\par
+- Can be consumed as environment variables, command-line arguments, or config files\par
+\par
+{\b Why we need it:}\par
+- Configuration management: Separate config from code\par
+- Environment-specific settings: Different configs for dev/staging/prod\par
+- No image rebuilds: Change config without rebuilding images\par
+- Centralized configuration: Manage configuration in one place\par
+\par
+{\b Use cases:}\par
+- Application settings (database URLs, API endpoints)\par
+- Configuration files (nginx.conf, app.properties)\par
+- Feature flags\par
+- Environment variables\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+# Create from file\par
+kubectl apply -f configmap.yaml\par
+\par
+# Create from literal values\par
+kubectl create configmap app-config \\\par
+  --from-literal=key1=value1\par
+\par
+# Create from file\par
+kubectl create configmap app-config \\\par
+  --from-file=config.properties\par
+\par
+# View configmap\par
+kubectl get configmaps\par
+kubectl describe configmap app-config\par
+kubectl get configmap app-config -o yaml\par
+\par
+kubectl delete -f configmap.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 11. Secret (secret.yaml)}\par
+\par
+{\b Definition:}\par
+Secret is similar to ConfigMap but specifically designed to hold confidential data like passwords, tokens, and keys.\par
+\par
+{\b What it is:}\par
+- Stores sensitive information\par
+- Base64 encoded (not encrypted by default)\par
+- Can be encrypted at rest with proper cluster configuration\par
+- Limited to 1MB in size\par
+\par
+{\b Types of Secrets:}\par
+- Opaque: Generic secret (default)\par
+- kubernetes.io/tls: TLS certificate and key\par
+- kubernetes.io/dockerconfigjson: Docker registry credentials\par
+- kubernetes.io/service-account-token: Service account token\par
+- kubernetes.io/ssh-auth: SSH authentication\par
+\par
+{\b Why we need it:}\par
+- Security: Keep sensitive data separate from application code\par
+- Access control: RBAC can control who can read secrets\par
+- Reduced risk: Secrets not exposed in image or config\par
+- Encryption: Can be encrypted at rest\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+# Create from file\par
+kubectl apply -f secret.yaml\par
+\par
+# Create from literal\par
+kubectl create secret generic app-secret \\\par
+  --from-literal=username=admin \\\par
+  --from-literal=password=secret123\par
+\par
+# Create TLS secret\par
+kubectl create secret tls tls-secret \\\par
+  --cert=path/to/cert.crt \\\par
+  --key=path/to/cert.key\par
+\par
+# View secrets (values are hidden)\par
+kubectl get secrets\par
+kubectl describe secret app-secret\par
+\par
+# Decode secret\par
+kubectl get secret app-secret -o jsonpath='\{.data.username\}' | base64 --decode\par
+\par
+kubectl delete -f secret.yaml\par
+\f1\fs24
+\par
+
+{\b Security best practices:}\par
+- Enable encryption at rest\par
+- Use RBAC to limit access\par
+- Use external secret management (Vault, AWS Secrets Manager)\par
+- Rotate secrets regularly\par
+- Never commit secrets to version control\par
+\par
+\page
+
+{\b\fs28 12. Namespace (namespace.yaml)}\par
+\par
+{\b Definition:}\par
+Namespace provides a mechanism for isolating groups of resources within a single cluster.\par
+\par
+{\b What it is:}\par
+- Virtual clusters within a physical cluster\par
+- Logical isolation of resources\par
+- Scope for names (names must be unique within a namespace)\par
+- Resource quotas can be applied per namespace\par
+\par
+{\b Why we need it:}\par
+- Multi-tenancy: Separate teams or projects\par
+- Environment separation: dev, staging, production in same cluster\par
+- Resource isolation: Apply quotas and limits per namespace\par
+- Access control: RBAC policies per namespace\par
+- Organization: Logical grouping of resources\par
+\par
+{\b Default namespaces:}\par
+- default: Default namespace for objects without namespace\par
+- kube-system: System components\par
+- kube-public: Publicly readable (even unauthenticated)\par
+- kube-node-lease: Node heartbeat information\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f namespace.yaml\par
+kubectl get namespaces\par
+kubectl describe namespace development\par
+\par
+# Create resources in namespace\par
+kubectl apply -f deployment.yaml -n development\par
+\par
+# View resources in namespace\par
+kubectl get all -n development\par
+\par
+# Set default namespace for kubectl\par
+kubectl config set-context --current --namespace=development\par
+\par
+# Delete namespace (deletes all resources in it)\par
+kubectl delete -f namespace.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 STORAGE RESOURCES}\par
+\line
+\par
+
+{\b\fs28 13. PersistentVolume (PV) (persistentvolume.yaml)}\par
+\par
+{\b Definition:}\par
+A PersistentVolume is a piece of storage in the cluster that has been provisioned by an administrator or dynamically provisioned using Storage Classes.\par
+\par
+{\b What it is:}\par
+- Cluster-level resource (not namespaced)\par
+- Represents physical storage (NFS, iSCSI, cloud disks)\par
+- Independent lifecycle from pods\par
+- Can be statically or dynamically provisioned\par
+\par
+{\b Storage types:}\par
+- HostPath (local storage - testing only)\par
+- NFS (Network File System)\par
+- Cloud disks (AWS EBS, GCP Persistent Disk, Azure Disk)\par
+- Ceph, GlusterFS\par
+- iSCSI\par
+\par
+{\b Reclaim policies:}\par
+- Retain: Manual reclamation after release\par
+- Recycle: Basic scrub (rm -rf /volume/*)\par
+- Delete: Delete underlying storage asset\par
+\par
+{\b Why we need it:}\par
+- Persistent data: Data survives pod restarts and rescheduling\par
+- Storage abstraction: Abstract storage details from applications\par
+- Storage management: Centralized storage provisioning\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f persistentvolume.yaml\par
+kubectl get persistentvolumes\par
+kubectl get pv\par
+kubectl describe pv pv-local\par
+kubectl delete -f persistentvolume.yaml\par
+\f1\fs24
+\par
+
+{\b PV States:}\par
+- Available: Free and not yet bound\par
+- Bound: Bound to a PVC\par
+- Released: PVC deleted but resource not reclaimed\par
+- Failed: Automatic reclamation failed\par
+\par
+\page
+
+{\b\fs28 14. PersistentVolumeClaim (PVC) (persistentvolumeclaim.yaml)}\par
+\par
+{\b Definition:}\par
+A PersistentVolumeClaim is a request for storage by a user. It's similar to a Pod - Pods consume node resources and PVCs consume PV resources.\par
+\par
+{\b What it is:}\par
+- Namespace-scoped resource\par
+- Request for storage with specific size and access mode\par
+- Binds to a PersistentVolume\par
+- Used by Pods to access storage\par
+\par
+{\b Access Modes:}\par
+- ReadWriteOnce (RWO): Mounted read-write by a single node\par
+- ReadOnlyMany (ROX): Mounted read-only by many nodes\par
+- ReadWriteMany (RWX): Mounted read-write by many nodes\par
+\par
+{\b Why we need it:}\par
+- Storage abstraction: Users request storage without knowing details\par
+- Dynamic provisioning: Automatically provision storage\par
+- Pod portability: Pods reference PVCs, not specific volumes\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f persistentvolumeclaim.yaml\par
+kubectl get persistentvolumeclaims\par
+kubectl get pvc\par
+kubectl describe pvc pvc-local\par
+kubectl delete -f persistentvolumeclaim.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 15. StorageClass (storageclass.yaml)}\par
+\par
+{\b Definition:}\par
+StorageClass provides a way to describe different "classes" of storage with different quality-of-service levels, backup policies, or other policies.\par
+\par
+{\b What it is:}\par
+- Defines storage provisioner\par
+- Enables dynamic volume provisioning\par
+- Specifies storage parameters (type, IOPS, etc.)\par
+- Can set reclaim policy and binding mode\par
+\par
+{\b Provisioners:}\par
+- AWS: kubernetes.io/aws-ebs\par
+- GCP: kubernetes.io/gce-pd\par
+- Azure: kubernetes.io/azure-disk\par
+- NFS: Custom provisioners\par
+- Ceph RBD: kubernetes.io/rbd\par
+\par
+{\b Why we need it:}\par
+- Dynamic provisioning: Automatic PV creation\par
+- Storage tiers: Different performance levels (SSD, HDD)\par
+- Policy management: Different backup and retention policies\par
+- On-demand storage: Storage created when needed\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f storageclass.yaml\par
+kubectl get storageclasses\par
+kubectl get sc\par
+kubectl describe sc fast-ssd\par
+kubectl delete -f storageclass.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 SECURITY & ACCESS CONTROL}\par
+\line
+\par
+
+{\b\fs28 16. ServiceAccount (serviceaccount.yaml)}\par
+\par
+{\b Definition:}\par
+ServiceAccount provides an identity for processes that run in a Pod to authenticate with the API server.\par
+\par
+{\b What it is:}\par
+- Identity for pods\par
+- Authenticates with API server\par
+- Can be assigned RBAC permissions\par
+- Automatically mounted in pods\par
+\par
+{\b Why we need it:}\par
+- Pod identity: Pods need identity to access API server\par
+- RBAC: Assign specific permissions to pods\par
+- Security: Principle of least privilege\par
+- Service-to-service auth: Applications authenticate as service accounts\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f serviceaccount.yaml\par
+kubectl get serviceaccounts\par
+kubectl get sa\par
+kubectl describe sa app-serviceaccount\par
+kubectl create token app-serviceaccount\par
+kubectl delete -f serviceaccount.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 17. Role (role.yaml)}\par
+\par
+{\b Definition:}\par
+Role contains rules that represent a set of permissions within a specific namespace. Permissions are purely additive (no deny rules).\par
+\par
+{\b What it is:}\par
+- Namespace-scoped permissions\par
+- Defines what actions can be performed\par
+- Contains list of API groups, resources, and verbs\par
+- Used with RoleBinding\par
+\par
+{\b Verbs (actions):}\par
+- get, list, watch (read operations)\par
+- create, update, patch (write operations)\par
+- delete, deletecollection (delete operations)\par
+- * (all verbs)\par
+\par
+{\b Why we need it:}\par
+- Least privilege: Grant only necessary permissions\par
+- Security: Control what users/services can do\par
+- Namespace isolation: Permissions limited to namespace\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f role.yaml\par
+kubectl get roles\par
+kubectl describe role pod-reader\par
+\par
+# View permissions\par
+kubectl auth can-i list pods \\\par
+  --as=system:serviceaccount:default:app-serviceaccount\par
+\par
+kubectl delete -f role.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 18. RoleBinding (rolebinding.yaml)}\par
+\par
+{\b Definition:}\par
+RoleBinding grants the permissions defined in a Role to a user, group, or ServiceAccount within a specific namespace.\par
+\par
+{\b What it is:}\par
+- Links Role to subjects (users, groups, service accounts)\par
+- Namespace-scoped\par
+- Grants permissions within namespace\par
+\par
+{\b Subjects:}\par
+- User: Human users\par
+- Group: Groups of users\par
+- ServiceAccount: Pod identities\par
+\par
+{\b Why we need it:}\par
+- Access control: Assign permissions to entities\par
+- RBAC implementation: Connect roles to subjects\par
+- Security: Control who can do what\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f rolebinding.yaml\par
+kubectl get rolebindings\par
+kubectl describe rolebinding read-pods-binding\par
+\par
+# Test permissions\par
+kubectl auth can-i get pods --as=jane\par
+\par
+kubectl delete -f rolebinding.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 19. ClusterRole (clusterrole.yaml)}\par
+\par
+{\b Definition:}\par
+ClusterRole is like Role but cluster-wide. It can grant permissions to cluster-scoped resources or be used across all namespaces.\par
+\par
+{\b What it is:}\par
+- Cluster-wide permissions (not namespace-scoped)\par
+- Can access cluster resources (nodes, persistentvolumes)\par
+- Can be used across all namespaces\par
+- More powerful than Role\par
+\par
+{\b Use cases:}\par
+- Cluster-scoped resources (nodes, namespaces, PVs)\par
+- Non-resource endpoints (/healthz, /metrics)\par
+- Aggregated permissions across namespaces\par
+\par
+{\b Why we need it:}\par
+- Cluster administration: Manage cluster resources\par
+- Cross-namespace access: Access resources in all namespaces\par
+- Node management: Manage cluster nodes\par
+- Global permissions: Apply permissions cluster-wide\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f clusterrole.yaml\par
+kubectl get clusterroles\par
+kubectl describe clusterrole cluster-admin-read\par
+kubectl get clusterroles  # View built-in roles\par
+kubectl delete -f clusterrole.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 20. ClusterRoleBinding (clusterrolebinding.yaml)}\par
+\par
+{\b Definition:}\par
+ClusterRoleBinding grants the permissions defined in a ClusterRole to subjects cluster-wide.\par
+\par
+{\b What it is:}\par
+- Links ClusterRole to subjects\par
+- Cluster-scoped (applies everywhere)\par
+- Grants cluster-wide or cross-namespace permissions\par
+\par
+{\b Why we need it:}\par
+- Cluster administration: Grant admin permissions\par
+- Monitoring: Allow monitoring tools to access all namespaces\par
+- Service accounts: Global service account permissions\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f clusterrolebinding.yaml\par
+kubectl get clusterrolebindings\par
+kubectl describe clusterrolebinding read-all-binding\par
+\par
+# Test cluster-wide permissions\par
+kubectl auth can-i get nodes --as=viewer\par
+\par
+kubectl delete -f clusterrolebinding.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 NETWORKING RESOURCES}\par
+\line
+\par
+
+{\b\fs28 21. Ingress (ingress.yaml)}\par
+\par
+{\b Definition:}\par
+Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster.\par
+\par
+{\b What it is:}\par
+- Layer 7 (HTTP/HTTPS) load balancer\par
+- Routes traffic based on host and path\par
+- SSL/TLS termination\par
+- Requires Ingress Controller (nginx, traefik, etc.)\par
+\par
+{\b Why we need it:}\par
+- Single entry point: One load balancer for multiple services\par
+- Path-based routing: /api -> api-service, /web -> web-service\par
+- Host-based routing: api.example.com -> api-service\par
+- SSL/TLS: Centralized certificate management\par
+- Cost-effective: One load balancer instead of many\par
+\par
+{\b Features:}\par
+- Host-based routing\par
+- Path-based routing\par
+- SSL/TLS termination\par
+- URL rewriting\par
+- Redirects\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+# Install Ingress Controller first\par
+kubectl apply -f ingress.yaml\par
+kubectl get ingress\par
+kubectl describe ingress app-ingress\par
+\par
+# Test\par
+curl -H "Host: example.com" http://<ingress-ip>/\par
+\par
+kubectl delete -f ingress.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 22. NetworkPolicy (networkpolicy.yaml)}\par
+\par
+{\b Definition:}\par
+NetworkPolicy specifies how groups of pods are allowed to communicate with each other and other network endpoints.\par
+\par
+{\b What it is:}\par
+- Firewall rules for pods\par
+- Controls ingress (incoming) and egress (outgoing) traffic\par
+- Pod-level network segmentation\par
+- Requires CNI plugin support (Calico, Cilium, etc.)\par
+\par
+{\b Why we need it:}\par
+- Security: Prevent unauthorized network access\par
+- Micro-segmentation: Isolate workloads\par
+- Compliance: Meet network security requirements\par
+- Defense in depth: Additional security layer\par
+\par
+{\b Policy types:}\par
+- Ingress: Control incoming traffic\par
+- Egress: Control outgoing traffic\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+# Requires CNI plugin with NetworkPolicy support\par
+kubectl apply -f networkpolicy.yaml\par
+kubectl get networkpolicies\par
+kubectl get netpol\par
+kubectl describe networkpolicy deny-all\par
+kubectl delete -f networkpolicy.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 SCHEDULING & RESOURCE MANAGEMENT}\par
+\line
+\par
+
+{\b\fs28 23. ResourceQuota (resourcequota.yaml)}\par
+\par
+{\b Definition:}\par
+ResourceQuota provides constraints that limit aggregate resource consumption per namespace.\par
+\par
+{\b What it is:}\par
+- Namespace-level resource limits\par
+- Limits compute resources (CPU, memory)\par
+- Limits object counts (pods, services, etc.)\par
+- Limits storage requests\par
+\par
+{\b Quota types:}\par
+- Compute: requests.cpu, requests.memory, limits.cpu, limits.memory\par
+- Storage: requests.storage, persistentvolumeclaims\par
+- Object count: pods, services, configmaps, secrets\par
+\par
+{\b Why we need it:}\par
+- Multi-tenancy: Prevent resource monopolization\par
+- Cost control: Limit resource usage\par
+- Cluster stability: Prevent resource exhaustion\par
+- Fair allocation: Ensure fair resource distribution\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f resourcequota.yaml\par
+kubectl get resourcequota -n development\par
+kubectl describe resourcequota compute-quota -n development\par
+kubectl delete -f resourcequota.yaml\par
+\f1\fs24
+\par
+{\b Important:} Pods must specify resource requests/limits when ResourceQuota is active.\par
+\par
+\page
+
+{\b\fs28 24. LimitRange (limitrange.yaml)}\par
+\par
+{\b Definition:}\par
+LimitRange sets default resource requests/limits and enforces min/max constraints on resources per pod or container.\par
+\par
+{\b What it is:}\par
+- Namespace-level resource constraints\par
+- Sets default requests and limits\par
+- Enforces minimum and maximum values\par
+- Applies to containers, pods, PVCs\par
+\par
+{\b Why we need it:}\par
+- Resource management: Ensure all containers have limits\par
+- Prevent abuse: Limit maximum resource usage\par
+- Defaults: Auto-assign limits to containers without them\par
+- Quality of Service: Ensure minimum resource guarantees\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f limitrange.yaml\par
+kubectl get limitranges -n development\par
+kubectl describe limitrange cpu-memory-limit-range -n development\par
+kubectl delete -f limitrange.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 25. HorizontalPodAutoscaler (HPA) (horizontalpodautoscaler.yaml)}\par
+\par
+{\b Definition:}\par
+HorizontalPodAutoscaler automatically scales the number of pods based on observed CPU utilization, memory, or custom metrics.\par
+\par
+{\b What it is:}\par
+- Automatic horizontal scaling\par
+- Scales Deployment, ReplicaSet, or StatefulSet\par
+- Based on metrics (CPU, memory, custom)\par
+- Adjusts replica count\par
+\par
+{\b Why we need it:}\par
+- Auto-scaling: Automatically handle load changes\par
+- Cost optimization: Scale down during low traffic\par
+- Performance: Scale up during high traffic\par
+- Reliability: Maintain performance SLAs\par
+\par
+{\b Metrics types:}\par
+- Resource: CPU, memory utilization\par
+- Pods: Custom per-pod metrics\par
+- Object: Metrics from other objects\par
+- External: Metrics from external systems\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+# Requires metrics-server\par
+kubectl apply -f horizontalpodautoscaler.yaml\par
+kubectl get hpa\par
+kubectl describe hpa nginx-hpa\par
+kubectl get hpa --watch\par
+kubectl delete -f horizontalpodautoscaler.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs28 26. PodDisruptionBudget (PDB) (poddisruptionbudget.yaml)}\par
+\par
+{\b Definition:}\par
+PodDisruptionBudget limits the number of pods that can be down simultaneously due to voluntary disruptions.\par
+\par
+{\b What it is:}\par
+- Availability guarantees during disruptions\par
+- Protects against voluntary disruptions (node drain, updates)\par
+- Specifies minimum available or maximum unavailable pods\par
+- Does NOT protect against involuntary disruptions\par
+\par
+{\b Disruption types:}\par
+- Voluntary: Node drain, deployment updates, kubectl delete\par
+- Involuntary: Hardware failure, kernel panic, node disappears\par
+\par
+{\b Why we need it:}\par
+- High availability: Ensure minimum replicas during updates\par
+- Safe deployments: Prevent too many pods down at once\par
+- Cluster operations: Safe node maintenance\par
+- Application SLA: Maintain service availability\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f poddisruptionbudget.yaml\par
+kubectl get poddisruptionbudgets\par
+kubectl get pdb\par
+kubectl describe pdb nginx-pdb\par
+kubectl delete -f poddisruptionbudget.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 ADVANCED RESOURCES}\par
+\line
+\par
+
+{\b\fs28 27. CustomResourceDefinition (CRD) (customresourcedefinition.yaml)}\par
+\par
+{\b Definition:}\par
+CustomResourceDefinition allows you to define custom resources and extend the Kubernetes API with your own resource types.\par
+\par
+{\b What it is:}\par
+- Extends Kubernetes API\par
+- Defines new resource types\par
+- Schema validation\par
+- Custom controllers can watch CRDs\par
+\par
+{\b Why we need it:}\par
+- Custom resources: Define application-specific resources\par
+- Operators: Build Kubernetes operators\par
+- Platform extension: Extend Kubernetes functionality\par
+- Declarative APIs: Create declarative APIs for apps\par
+\par
+{\b Use cases:}\par
+- Database operators (MySQL, PostgreSQL)\par
+- Certificate managers (cert-manager)\par
+- Backup solutions\par
+- Application-specific configurations\par
+\par
+{\b How to apply:}\par
+\f2\fs20
+kubectl apply -f customresourcedefinition.yaml\par
+kubectl get crds\par
+kubectl describe crd applications.example.com\par
+kubectl get applications\par
+kubectl delete -f customresourcedefinition.yaml\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 BEST PRACTICES SUMMARY}\par
+\line
+\par
+
+{\b\fs28 1. Resource Management}\par
+- Always set resource requests and limits\par
+- Use ResourceQuotas and LimitRanges in namespaces\par
+- Monitor resource usage with metrics\par
+\par
+
+{\b\fs28 2. High Availability}\par
+- Use Deployments, not bare Pods\par
+- Set multiple replicas\par
+- Configure PodDisruptionBudgets\par
+- Use readiness and liveness probes\par
+\par
+
+{\b\fs28 3. Security}\par
+- Use namespaces for isolation\par
+- Implement RBAC (Roles, RoleBindings)\par
+- Use NetworkPolicies\par
+- Store secrets in Secrets, not ConfigMaps\par
+- Enable Pod Security Standards\par
+- Run containers as non-root\par
+- Use ServiceAccounts with minimal permissions\par
+\par
+
+{\b\fs28 4. Configuration}\par
+- Use ConfigMaps for configuration\par
+- Use Secrets for sensitive data\par
+- Don't hardcode configuration in images\par
+- Use environment-specific namespaces\par
+\par
+
+{\b\fs28 5. Storage}\par
+- Use PersistentVolumes for stateful apps\par
+- Choose appropriate StorageClasses\par
+- Use StatefulSets for stateful workloads\par
+- Regular backups with VolumeSnapshots\par
+\par
+\page
+
+{\b\fs28 6. Networking}\par
+- Use Services for pod communication\par
+- Use Ingress for external HTTP/HTTPS access\par
+- Implement NetworkPolicies for security\par
+- Use ClusterIP for internal services\par
+\par
+
+{\b\fs28 7. Monitoring & Logging}\par
+- Implement liveness and readiness probes\par
+- Centralize logging (ELK, Fluentd)\par
+- Use metrics-server for resource metrics\par
+- Monitor with Prometheus/Grafana\par
+\par
+
+{\b\fs28 8. Deployment Strategy}\par
+- Use rolling updates for zero-downtime\par
+- Configure maxSurge and maxUnavailable\par
+- Test in development/staging first\par
+- Use HPA for auto-scaling\par
+- Version your container images\par
+\par
+
+{\b\fs28 9. Labels & Annotations}\par
+- Use consistent labeling conventions\par
+- Label for organization (app, tier, environment)\par
+- Use labels for selectors\par
+- Use annotations for metadata\par
+\par
+
+{\b\fs28 10. Version Control}\par
+- Store all manifests in Git\par
+- Never commit secrets\par
+- Use GitOps (ArgoCD, Flux)\par
+- Document changes in commit messages\par
+\par
+\page
+
+{\b\fs32 TROUBLESHOOTING GUIDE}\par
+\line
+\par
+
+{\b\fs28 Pod Issues}\par
+\par
+{\b Pod not starting:}\par
+\f2\fs20
+kubectl describe pod <pod-name>\par
+kubectl logs <pod-name>\par
+kubectl get events\par
+\f1\fs24
+\par
+Common causes:\par
+- Image pull errors (check ImagePullPolicy)\par
+- Resource constraints (insufficient CPU/memory)\par
+- Volume mount issues\par
+- Security context issues\par
+\par
+
+{\b Pod crashes/restarts:}\par
+\f2\fs20
+kubectl logs <pod-name> --previous\par
+kubectl describe pod <pod-name>\par
+\f1\fs24
+\par
+Common causes:\par
+- Application errors (check logs)\par
+- Resource limits exceeded (OOMKilled)\par
+- Liveness probe failures\par
+- Container image issues\par
+\par
+
+{\b\fs28 Service Issues}\par
+\par
+{\b Service not accessible:}\par
+\f2\fs20
+kubectl get endpoints <service-name>\par
+kubectl describe service <service-name>\par
+\f1\fs24
+\par
+Common causes:\par
+- No pods matching selector\par
+- Pods not ready (readiness probe failing)\par
+- Network policy blocking traffic\par
+- Wrong port configuration\par
+\par
+\page
+
+{\b\fs28 Storage Issues}\par
+\par
+{\b PVC not binding:}\par
+\f2\fs20
+kubectl describe pvc <pvc-name>\par
+kubectl get pv\par
+\f1\fs24
+\par
+Common causes:\par
+- No available PV matching requirements\par
+- Access mode mismatch\par
+- Storage size too large\par
+- StorageClass not available\par
+\par
+
+{\b\fs28 Performance Issues}\par
+\par
+{\b High resource usage:}\par
+\f2\fs20
+kubectl top pods\par
+kubectl top nodes\par
+kubectl describe node <node-name>\par
+\f1\fs24
+\par
+Solutions:\par
+- Scale horizontally with HPA\par
+- Optimize resource requests/limits\par
+- Use VPA for right-sizing\par
+\par
+\page
+
+{\b\fs32 ESSENTIAL KUBECTL COMMANDS}\par
+\line
+\par
+
+{\b Apply Resources:}\par
+\f2\fs20
+kubectl apply -f file.yaml\par
+kubectl apply -f directory/\par
+\f1\fs24
+\par
+
+{\b Get Resources:}\par
+\f2\fs20
+kubectl get pods\par
+kubectl get all\par
+kubectl get pod -o yaml\par
+kubectl get pods -n namespace\par
+\f1\fs24
+\par
+
+{\b Describe Resources:}\par
+\f2\fs20
+kubectl describe pod pod-name\par
+kubectl describe deployment deployment-name\par
+\f1\fs24
+\par
+
+{\b View Logs:}\par
+\f2\fs20
+kubectl logs pod-name\par
+kubectl logs -f pod-name\par
+kubectl logs pod-name -c container-name\par
+\f1\fs24
+\par
+
+{\b Execute Commands:}\par
+\f2\fs20
+kubectl exec -it pod-name -- /bin/bash\par
+kubectl exec pod-name -- ls /app\par
+\f1\fs24
+\par
+
+{\b Delete Resources:}\par
+\f2\fs20
+kubectl delete -f file.yaml\par
+kubectl delete pod pod-name\par
+\f1\fs24
+\par
+
+{\b Port Forward:}\par
+\f2\fs20
+kubectl port-forward pod-name 8080:80\par
+kubectl port-forward service/svc-name 8080:80\par
+\f1\fs24
+\par
+\page
+
+{\b\fs32 CONCLUSION}\par
+\line
+\par
+This guide covered all major Kubernetes manifest types from basic to advanced. Each resource serves a specific purpose in the Kubernetes ecosystem:\par
+\par
+{\b Workloads:} Run your applications (Pods, Deployments, StatefulSets)\par
+{\b Services:} Expose applications (Services, Ingress)\par
+{\b Configuration:} Manage configuration (ConfigMaps, Secrets)\par
+{\b Storage:} Persist data (PV, PVC, StorageClass)\par
+{\b Security:} Control access (RBAC, NetworkPolicy, ServiceAccounts)\par
+{\b Scheduling:} Optimize resource usage (HPA, VPA, ResourceQuota)\par
+{\b Advanced:} Extend Kubernetes (CRDs, Webhooks)\par
+\par
+
+{\b\fs28 Next Steps}\par
+\par
+1. Start simple: Begin with Pods, Deployments, and Services\par
+2. Add storage: Learn PersistentVolumes and StatefulSets\par
+3. Implement security: Set up RBAC and NetworkPolicies\par
+4. Optimize: Use HPA, ResourceQuotas, and LimitRanges\par
+5. Advanced features: Explore CRDs, Operators, and Webhooks\par
+\par
+
+{\b\fs28 Resources}\par
+\par
+- Official Kubernetes Documentation: https://kubernetes.io/docs/\par
+- Kubernetes API Reference: https://kubernetes.io/docs/reference/\par
+- kubectl Cheat Sheet: https://kubernetes.io/docs/reference/kubectl/cheatsheet/\par
+- Kubernetes Patterns: https://k8spatterns.io/\par
+\par
+
+{\b Remember:}\par
+Start with the basics, understand the fundamentals, and gradually move to advanced features as your needs grow. Kubernetes is powerful but complex - take it step by step!\par
+\par
+\page
+
+{\b\fs36 End of Document}\par
+\par
+{\b Kubernetes Manifests Complete Guide}\par
+WordPad Edition\par
+\par
+This document provides comprehensive coverage of all Kubernetes manifest files with detailed explanations, use cases, and best practices.\par
+\par
+For the latest updates and additional resources, refer to:\par
+- KUBERNETES-MANIFESTS-GUIDE.md\par
+- COMPLETE-YAML-GUIDE.md\par
+\par
+Happy Kubernetes Learning!\par
+\par
+}

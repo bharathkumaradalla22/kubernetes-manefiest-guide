@@ -1,0 +1,27 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: pod-validating-webhook
+webhooks:
+- name: validate.example.com
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: webhook-namespace
+      path: "/validate"
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0t...
+  rules:
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: [""]
+    apiVersions: ["v1"]
+    resources: ["pods"]
+  admissionReviewVersions: ["v1", "v1beta1"]
+  sideEffects: None
+  timeoutSeconds: 5
+  failurePolicy: Ignore
+  matchPolicy: Equivalent
+  namespaceSelector:
+    matchExpressions:
+    - key: environment
+      operator: In
+      values: ["production", "staging"]
